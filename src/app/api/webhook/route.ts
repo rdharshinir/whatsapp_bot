@@ -229,8 +229,13 @@ async function processIncomingMessage(
     } catch (e) {
       console.error('Error scheduling follow-up:', e);
     }
-  } catch (error) {
-    console.error('Error processing AI reply:', error);
+  } catch (error: any) {
+    console.error('=== AI REPLY FAILED ===');
+    console.error('Error name:', error?.name);
+    console.error('Error message:', error?.message);
+    console.error('Error status:', error?.status);
+    console.error('Error code:', error?.code);
+    console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
     // Fallback so the user isn't left hanging if the AI provider fails
     try {
       await sendWhatsAppMessage(phone, "I'm having a little trouble connecting right now. Please give me a moment and try again! ⏳");
