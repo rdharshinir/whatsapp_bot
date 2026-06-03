@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Google credentials — NEVER commit these
+calender-*.json
+client_secret_*.json
+*service_account*.json

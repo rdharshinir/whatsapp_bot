@@ -7,6 +7,15 @@ export interface Conversation {
   created_at: string;
   last_message?: string;
   last_message_at?: string;
+  status?: 'lead' | 'scheduled';
+  next_appointment?: {
+    service: string;
+    start: string;
+  } | null;
+  pending_followup?: {
+    type: string;
+    trigger_time: string;
+  } | null;
 }
 
 export interface Message {

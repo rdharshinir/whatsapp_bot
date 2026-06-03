@@ -76,6 +76,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
+import { scheduleFollowup, cancelFollowup } from '@/lib/qstash';
+
 async function processIncomingMessage(
   phone: string,
   text: string,
@@ -109,6 +111,7 @@ async function processIncomingMessage(
       .insert({
         phone,
         name: contactName,
+        mode: 'agent',
       })
       .select()
       .single();
@@ -139,6 +142,30 @@ async function processIncomingMessage(
     return;
   }
 
+  // Cancel any pending 'nurture_cold_lead' followups since the user just replied
+  const { data: pendingFollowups } = await supabase
+    .from('followups')
+    .select('*')
+    .eq('conversation_id', conversation.id)
+    .eq('followup_type', 'nurture_cold_lead')
+    .eq('status', 'scheduled');
+
+  if (pendingFollowups && pendingFollowups.length > 0) {
+    for (const f of pendingFollowups) {
+      if (f.qstash_message_id) {
+        try {
+          await cancelFollowup(f.qstash_message_id);
+        } catch (e) {
+          console.error('Error cancelling QStash message:', e);
+        }
+      }
+      await supabase
+        .from('followups')
+        .update({ status: 'cancelled' })
+        .eq('id', f.id);
+    }
+  }
+
   // Update conversation timestamp
   await supabase
     .from('conversations')
@@ -166,7 +193,7 @@ async function processIncomingMessage(
 
   // Get AI response
   try {
-    const aiReply = await getAIResponse(messages);
+    const aiReply = await getAIResponse(messages, conversation.id);
 
     // Send reply via WhatsApp
     await sendWhatsAppMessage(phone, aiReply);
@@ -183,6 +210,24 @@ async function processIncomingMessage(
       .from('conversations')
       .update({ updated_at: new Date().toISOString() })
       .eq('id', conversation.id);
+
+    // Schedule a new cold lead followup for 24 hours from now
+    try {
+      const qstashMsgId = await scheduleFollowup(conversation.id, 'nurture_cold_lead', '24h');
+      
+      const triggerTime = new Date();
+      triggerTime.setHours(triggerTime.getHours() + 24);
+
+      await supabase.from('followups').insert({
+        conversation_id: conversation.id,
+        trigger_time: triggerTime.toISOString(),
+        followup_type: 'nurture_cold_lead',
+        qstash_message_id: qstashMsgId,
+        status: 'scheduled'
+      });
+    } catch (e) {
+      console.error('Error scheduling follow-up:', e);
+    }
   } catch (error) {
     console.error('Error processing AI reply:', error);
   }

@@ -143,11 +143,25 @@ export default function ConversationList({ activeId, onSelect }: ConversationLis
                 <div className="conversation-top-row">
                   <span className="conversation-name">
                     {conv.name || conv.phone}
+                    {conv.status === 'scheduled' && <span className="status-badge ml-2" style={{fontSize: '10px', backgroundColor: '#10b981', color: 'white', padding: '2px 4px', borderRadius: '4px'}}>Scheduled</span>}
                   </span>
                   <span className="conversation-time">
                     {formatTime(conv.last_message_at || conv.updated_at)}
                   </span>
                 </div>
+                
+                {conv.next_appointment && (
+                  <div className="text-xs text-emerald-400 mt-1 mb-1">
+                    📅 {conv.next_appointment.service} at {new Date(conv.next_appointment.start).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </div>
+                )}
+                
+                {conv.pending_followup && (
+                  <div className="text-xs text-blue-400 mt-1 mb-1">
+                    ⏰ Auto follow-up scheduled
+                  </div>
+                )}
+
                 <div className="conversation-bottom-row">
                   <span className="conversation-preview">
                     {truncate(conv.last_message || '', 45)}
