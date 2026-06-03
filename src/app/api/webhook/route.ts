@@ -57,12 +57,13 @@ export async function POST(request: NextRequest) {
           const contactName =
             value.contacts?.[0]?.profile?.name || null;
 
-          await processIncomingMessage(
+          // Fire and forget so we can return 200 OK to Meta immediately without timing out
+          processIncomingMessage(
             phone,
             text,
             whatsappMsgId,
             contactName
-          );
+          ).catch((err) => console.error('Failed to process message in background:', err));
         }
       }
     }
@@ -230,5 +231,11 @@ async function processIncomingMessage(
     }
   } catch (error) {
     console.error('Error processing AI reply:', error);
+    // Fallback so the user isn't left hanging if the AI provider fails
+    try {
+      await sendWhatsAppMessage(phone, "I'm having a little trouble connecting right now. Please give me a moment and try again! ⏳");
+    } catch (fallbackError) {
+      console.error('Even the fallback message failed:', fallbackError);
+    }
   }
 }
