@@ -2,6 +2,7 @@ import OpenAI from 'openai';
 import { getFreeBusy, createEvent } from './calendar';
 import { createServerSupabaseClient } from './supabase';
 import { scheduleFollowup } from './qstash';
+import { DENTAADMIN_SYSTEM_PROMPT } from '../../DB/dentaadmin_prompt';
 
 let _openai: OpenAI | null = null;
 
@@ -139,20 +140,8 @@ export async function getAIResponse(
   conversationHistory: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>,
   conversationId?: string
 ): Promise<string> {
-  const systemPrompt =
-    (process.env.AI_SYSTEM_PROMPT ||
-      'You are a helpful WhatsApp assistant for a dental clinical service.') +
-    `
-
-STRICT RULES:
-- NEVER display function calls, tool calls, or JSON in your responses
-- NEVER show <function=...> tags in your message
-- When you need to check availability, do it silently and only respond with the result in plain conversational language
-- Always respond in simple, friendly WhatsApp-style messages
-- Keep responses short and clear
-- NEVER output raw function call syntax like <function=name>{...}</function> in your replies
-- Use the provided tools via the API tool_calls mechanism only
-- Always respond in plain, conversational language that is appropriate to send directly in WhatsApp`;
+  // Use env override if set, otherwise load the full DentaAdmin knowledge base from DB/
+  const systemPrompt = process.env.AI_SYSTEM_PROMPT || DENTAADMIN_SYSTEM_PROMPT;
 
   const model = process.env.AI_MODEL || 'llama-3.3-70b-versatile';
   const openai = getOpenAIClient();
