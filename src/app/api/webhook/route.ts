@@ -57,13 +57,13 @@ export async function POST(request: NextRequest) {
           const contactName =
             value.contacts?.[0]?.profile?.name || null;
 
-          // Fire and forget so we can return 200 OK to Meta immediately without timing out
-          processIncomingMessage(
+          // Await the processing so Vercel doesn't kill the serverless function immediately
+          await processIncomingMessage(
             phone,
             text,
             whatsappMsgId,
             contactName
-          ).catch((err) => console.error('Failed to process message in background:', err));
+          ).catch((err) => console.error('Failed to process message:', err));
         }
       }
     }

@@ -5,9 +5,19 @@ import path from 'path';
 const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 
 const getAuthClient = () => {
-  // Use the provided JSON key file directly
-  const keyFilePath = path.join(process.cwd(), 'calender-497404-f6023532c0fd.json');
+  // First try environment variables (for Vercel)
+  if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+    return new google.auth.GoogleAuth({
+      credentials: {
+        client_email: process.env.GOOGLE_CLIENT_EMAIL,
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+      },
+      scopes: SCOPES,
+    });
+  }
 
+  // Fallback to local file
+  const keyFilePath = path.join(process.cwd(), 'calender-497404-f6023532c0fd.json');
   return new google.auth.GoogleAuth({
     keyFile: keyFilePath,
     scopes: SCOPES,
