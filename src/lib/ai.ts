@@ -9,8 +9,8 @@ let _openai: OpenAI | null = null;
 function getOpenAIClient(): OpenAI {
   if (!_openai) {
     _openai = new OpenAI({
-      baseURL: 'https://api.groq.com/openai/v1',
-      apiKey: process.env.OPENROUTER_API_KEY || process.env.GROQ_API_KEY || 'placeholder',
+      baseURL: 'https://openrouter.ai/api/v1',
+      apiKey: process.env.OPENROUTER_API_KEY || 'placeholder',
     });
   }
   return _openai;
@@ -143,7 +143,7 @@ export async function getAIResponse(
   // Use env override if set, otherwise load the full DentaAdmin knowledge base from DB/
   const systemPrompt = process.env.AI_SYSTEM_PROMPT || DENTAADMIN_SYSTEM_PROMPT;
 
-  const model = process.env.AI_MODEL || 'llama-3.3-70b-versatile';
+  const model = process.env.AI_MODEL || 'meta-llama/llama-3.3-70b-instruct';
   const openai = getOpenAIClient();
 
   const messages: any[] = [

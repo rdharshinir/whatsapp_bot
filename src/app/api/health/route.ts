@@ -25,11 +25,11 @@ export async function GET() {
   // 2. Test Groq/AI connection
   try {
     const openai = new OpenAI({
-      baseURL: 'https://api.groq.com/openai/v1',
+      baseURL: 'https://openrouter.ai/api/v1',
       apiKey: process.env.OPENROUTER_API_KEY || 'missing',
     });
 
-    const model = process.env.AI_MODEL || 'llama-3.3-70b-versatile';
+    const model = process.env.AI_MODEL || 'meta-llama/llama-3.3-70b-instruct';
     const response = await openai.chat.completions.create({
       model,
       messages: [{ role: 'user', content: 'Say "OK" and nothing else.' }],
