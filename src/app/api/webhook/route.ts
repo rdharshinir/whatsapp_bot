@@ -4,6 +4,8 @@ import { sendWhatsAppMessage } from '@/lib/whatsapp';
 import { getAIResponse } from '@/lib/ai';
 import { MetaWebhookPayload } from '@/lib/types';
 
+export const maxDuration = 60;
+
 // GET — Webhook verification
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
