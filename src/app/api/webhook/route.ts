@@ -238,9 +238,20 @@ async function processIncomingMessage(
     console.error('Error status:', error?.status);
     console.error('Error code:', error?.code);
     console.error('Full error:', JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
-    // Fallback so the user isn't left hanging if the AI provider fails
+    // Fallback if the AI provider fails - we fail silently instead of sending an error message to the customer
     try {
-      await sendWhatsAppMessage(phone, "I'm having a little trouble connecting right now. Please give me a moment and try again! ⏳");
+
+      // Also schedule a follow-up for the fallback message so the lead isn't dropped
+      const qstashMsgId = await scheduleFollowup(conversation.id, 'nurture_cold_lead', '24h');
+      const triggerTime = new Date();
+      triggerTime.setHours(triggerTime.getHours() + 24);
+      await supabase.from('followups').insert({
+        conversation_id: conversation.id,
+        trigger_time: triggerTime.toISOString(),
+        followup_type: 'nurture_cold_lead',
+        qstash_message_id: qstashMsgId,
+        status: 'scheduled'
+      });
     } catch (fallbackError) {
       console.error('Even the fallback message failed:', fallbackError);
     }

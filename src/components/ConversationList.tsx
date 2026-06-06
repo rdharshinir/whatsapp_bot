@@ -156,11 +156,7 @@ export default function ConversationList({ activeId, onSelect }: ConversationLis
                   </div>
                 )}
                 
-                {conv.pending_followup && (
-                  <div className="text-xs text-blue-400 mt-1 mb-1">
-                    ⏰ Auto follow-up scheduled
-                  </div>
-                )}
+
 
                 <div className="conversation-bottom-row">
                   <span className="conversation-preview">
